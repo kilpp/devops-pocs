@@ -38,7 +38,7 @@ A sample application was packaged as a Helm chart and deployed to the `apps` nam
 
 ## 7. Integration Testing and Monitoring Validation
 
-Integration testing was performed to verify the deployment. The Jenkins pipeline successfully deployed the application. OpenTofu automated tests were validated. However, due to sandbox environment limitations, direct verification of Prometheus collecting metrics from the application and Grafana displaying these metrics was not possible.
+Integration testing was performed to verify the deployment. The Jenkins pipeline successfully deployed the application. OpenTofu automated tests were validated
 
 
 

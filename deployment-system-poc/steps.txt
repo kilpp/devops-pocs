@@ -1,0 +1,17 @@
+1 - Install minikube: curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+2 - Download kubectl: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt )/bin/linux/amd64/kubectl"
+    2.1 - Install kubectl: sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    2.2 - Verify kubectl installation:
+    2.3 - kubectl version --client
+
+3 - Download the Helm installation script: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    3.1 Verify Helm installation: helm version
+
+4 - Start Minikube with sufficient resources(Can select multiple driver - doocker pre installed for this): minikube start --memory=4096 --cpus=2 
+    4.1 Verify that Minikube is running: minikube status
+    4.2 Create two namespaces - one for infrastructure and one for applications: kubectl create namespace infra; kubectl create namespace apps
+    4.3 Verify the namespaces were created: kubectl get namespaces
+
+5 - Install Jenkins with Helm on minikube infra namespace
+    - command: helm install jenkins jenkins/jenkins -n infra --set persistence.enabled=false --set controller.serviceType=NodePort --set controller.nodePort=32000

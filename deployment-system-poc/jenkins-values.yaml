@@ -1,0 +1,15 @@
+controller:
+  serviceType: NodePort
+  nodePort: 32000
+  installPlugins:
+    - kubernetes:4246.v5a_12b_1fe120e
+    - workflow-aggregator:596.v8c21c963d92d
+    - git:5.2.1
+    - configuration-as-code:1850.va_a_8c31d3158b_
+  additionalPlugins:
+    - prometheus:2.2.3
+  JCasC:
+    defaultConfig: true
+persistence:
+  enabled: true
+  size: 8Gi

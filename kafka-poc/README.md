@@ -13,12 +13,30 @@ A complete Kafka proof-of-concept with scripts to set up Kafka, produce messages
 
 Follow these steps in order:
 
+### Step 0: Setup Python Virtual Environment
+
+Create and activate a virtual environment:
+
+```bash
+# Create venv (if not already created)
+python3 -m venv venv
+
+# Activate it
+source activate.sh
+# or
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
 ### Step 1: Setup Kafka
 
 Download and extract Kafka:
 
 ```bash
-chmod +x setup-kafka.sh
+cd scripts
+chmod +x *.sh
 ./setup-kafka.sh
 ```
 
@@ -29,7 +47,7 @@ This will download Apache Kafka and extract it to your current directory.
 In a **new terminal window**, start ZooKeeper:
 
 ```bash
-chmod +x start-zookeeper.sh
+cd scripts
 ./start-zookeeper.sh
 ```
 
@@ -40,7 +58,7 @@ Keep this terminal running. You should see logs indicating ZooKeeper is running 
 In **another new terminal window**, start the Kafka broker:
 
 ```bash
-chmod +x start-kafka.sh
+cd scripts
 ./start-kafka.sh
 ```
 
@@ -51,32 +69,19 @@ Keep this terminal running as well. You should see logs indicating Kafka is runn
 In your **original terminal**, create a test topic:
 
 ```bash
-chmod +x create-topic.sh
+cd scripts
 ./create-topic.sh test-topic
 ```
 
 This creates a topic named "test-topic" with 3 partitions.
 
-### Step 5: Install Python Dependencies
+### Step 5: Run the Consumer
 
-Install the kafka-python library:
-
-```bash
-pip install kafka-python
-```
-
-Or if using pip3:
+In a **new terminal window**, activate venv and start the consumer:
 
 ```bash
-pip3 install kafka-python
-```
-
-### Step 6: Run the Consumer
-
-In a **new terminal window**, start the consumer to listen for messages:
-
-```bash
-python3 consumer.py
+source activate.sh
+python3 src/consumer.py
 ```
 
 You'll be prompted to choose:
@@ -99,18 +104,40 @@ You'll be prompted to choose:
 2. Demo mode (send sample messages)
 
 Choose option 2 to send sample messages, or option 1 to type your own messages.
+### Step 6: Run the Producer
+## Project Structure
 
-## Scripts Overview
-
-### Shell Scripts
+```
+kafka-poc/
+├── src/                    # Python source code
+│   ├── producer.py        # Kafka producer
+│   ├── consumer.py        # Kafka consumer
+│   └── config.py          # Configuration
+├── scripts/               # Shell scripts
+│   ├── setup-kafka.sh     # Downloads Kafka
+│   ├── start-zookeeper.sh # Starts ZooKeeper
+│   ├── start-kafka.sh     # Starts Kafka broker
+│   └── create-topic.sh    # Creates topics
+├── tests/                 # Unit tests
+├── config/               # Environment configs
+├── venv/                 # Virtual environment
+├── activate.sh           # Venv activation helper
+- **`consumer.py`** - Reads messages from a Kafka topic
+  - Can read from latest or from beginning
+  - Shows topic information (partitions, offsets)
+  - Pretty-prints received messages
+  - Graceful shutdown with Ctrl+C
+- **`config.py`** - Centralized configuration with environment variable support
+### Shell Scripts (in `scripts/`)
 
 - **`setup-kafka.sh`** - Downloads and extracts Apache Kafka
 - **`start-zookeeper.sh`** - Starts ZooKeeper (required for Kafka)
 - **`start-kafka.sh`** - Starts the Kafka broker
 - **`create-topic.sh`** - Creates a new Kafka topic (usage: `./create-topic.sh <topic-name>`)
 
-### Python Scripts
+### Python Scripts (in `src/`)
 
+- **`producer.py`** - Sends messages to a Kafka topic
 - **`producer.py`** - Sends messages to a Kafka topic
   - Interactive mode: Manually type messages
   - Demo mode: Automatically sends sample messages
@@ -136,27 +163,40 @@ Choose option 2 to send sample messages, or option 1 to type your own messages.
 │   Broker    │ - Stores messages
 └──────┬──────┘ - Manages topics
        │
-   ┌───┴───┐
-   │       │
-┌──▼───┐ ┌▼────┐
-│ Producer│ │Consumer│
-│ (Write) │ │ (Read) │
-└─────────┘ └───────┘
+## Configuration
+
+### Default Settings
+
+- **Kafka Bootstrap Server**: `localhost:9092`
+- **ZooKeeper Port**: `2181`
+- **Default Topic**: `test-topic`
+- **Consumer Group**: `test-consumer-group`
+- **Partitions**: 3
+- **Replication Factor**: 1
+
+### Customizing
+
+Configuration is managed through environment variables. Load a configuration:
+
+```bash
+# Development environment
+source config/dev.env
+
+# Production environment
+source config/prod.env
 ```
 
-## Message Format
-
-Messages sent by the producer have the following JSON structure:
-
-```json
-{
-  "text": "Your message text",
-  "timestamp": "2025-12-01T10:30:45.123456",
-  "message_id": 1,
-  "type": "info"
-}
+Or set individual variables:
+```bash
+export KAFKA_TOPIC="my-custom-topic"
+export KAFKA_BOOTSTRAP_SERVERS="kafka1:9092,kafka2:9092"
 ```
 
+Create a new topic:
+```bash
+cd scripts
+./create-topic.sh my-custom-topic
+```
 ## Configuration
 
 ### Default Settings
@@ -196,34 +236,34 @@ lsof -ti:9092 | xargs kill -9
 ```
 
 ### Consumer Not Receiving Messages
-
-1. Make sure ZooKeeper is running
-2. Make sure Kafka broker is running
-3. Check that the topic exists:
-   ```bash
-   cd kafka_2.13-3.6.1
-   bin/kafka-topics.sh --list --bootstrap-server localhost:9092
-   ```
-
-### Connection Refused Errors
-
-Ensure services are started in this order:
-1. ZooKeeper first
-2. Kafka broker second
-3. Then create topics
-4. Finally run producer/consumer
-
-### Java Not Found
-
-Install Java:
-
-**Ubuntu/Debian:**
+### List all topics:
 ```bash
-sudo apt-get update
-sudo apt-get install default-jdk
+cd scripts/kafka_2.13-3.6.1
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 ```
 
-**macOS:**
+### Describe a topic:
+```bash
+cd scripts/kafka_2.13-3.6.1
+bin/kafka-topics.sh --describe --topic test-topic --bootstrap-server localhost:9092
+```
+
+### Delete a topic:
+```bash
+cd scripts/kafka_2.13-3.6.1
+bin/kafka-topics.sh --delete --topic test-topic --bootstrap-server localhost:9092
+```
+
+### View consumer groups:
+```bash
+cd scripts/kafka_2.13-3.6.1
+bin/kafka-consumer-groups.sh --list --bootstrap-server localhost:9092
+```
+
+### Check consumer group lag:
+```bash
+cd scripts/kafka_2.13-3.6.1
+bin/kafka-consumer-groups.sh --describe --group test-consumer-group --bootstrap-server localhost:9092
 ```bash
 brew install openjdk@11
 ```
@@ -252,17 +292,51 @@ bin/kafka-topics.sh --delete --topic test-topic --bootstrap-server localhost:909
 ```bash
 cd kafka_2.13-3.6.1
 bin/kafka-consumer-groups.sh --list --bootstrap-server localhost:9092
-```
+## Testing
 
-### Check consumer group lag:
+The project includes a full test suite:
+
 ```bash
-cd kafka_2.13-3.6.1
-bin/kafka-consumer-groups.sh --describe --group test-consumer-group --bootstrap-server localhost:9092
+# Activate virtual environment
+source activate.sh
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# View coverage report
+open htmlcov/index.html
 ```
 
-## Stopping Services
+## Development
 
-1. Stop producer/consumer: Press `Ctrl+C`
+For detailed development information, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
+Quick commands:
+```bash
+# Format code
+black src/ tests/
+
+# Lint code
+flake8 src/ tests/
+
+# Type check
+mypy src/
+```
+
+## Clean Up
+
+To remove all data and start fresh:
+
+```bash
+rm -rf scripts/kafka_2.13-3.6.1
+rm -rf /tmp/kafka-logs
+rm -rf /tmp/zookeeper
+```
+
+Then run `./scripts/setup-kafka.sh` again.Ctrl+C`
 2. Stop Kafka broker: Press `Ctrl+C` in the Kafka terminal
 3. Stop ZooKeeper: Press `Ctrl+C` in the ZooKeeper terminal
 

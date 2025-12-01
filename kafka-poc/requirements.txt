@@ -1,1 +1,2 @@
-kafka-python==2.0.2
+# Use kafka-python-ng (maintained fork with Python 3.12+ support)
+kafka-python-ng==2.2.2

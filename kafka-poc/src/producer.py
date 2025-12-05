@@ -116,6 +116,7 @@ def demo_mode(producer):
         ("user3", {"text": "Kafka is awesome!", "type": "opinion"}),
         ("user1", {"text": "Another message from user1", "type": "update"}),
         (None, {"text": "Message without a key", "type": "broadcast"}),
+        (None, {})
     ]
     
     for i, (key, msg_data) in enumerate(sample_messages, 1):

@@ -13,7 +13,7 @@ if [ ! -d "$KAFKA_DIR" ]; then
 fi
 
 if [ -z "$1" ]; then
-    TOPIC_NAME="test-topic"
+    TOPIC_NAME="poc-topic"
     echo "No topic name provided. Using default: $TOPIC_NAME"
 else
     TOPIC_NAME="$1"

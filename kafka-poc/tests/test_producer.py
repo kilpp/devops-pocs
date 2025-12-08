@@ -34,8 +34,8 @@ class TestProducer:
         mock_future = Mock()
         mock_metadata = Mock()
         mock_metadata.topic = "test-topic"
-        mock_metadata.partition = 0
-        mock_metadata.offset = 123
+        mock_metadata.partition = 1
+        mock_metadata.offset = 124
         mock_future.get.return_value = mock_metadata
         mock_producer.send.return_value = mock_future
 

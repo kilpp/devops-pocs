@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "services/common",
+    "services/order-ingestion",
+    "services/order-processor",
+    "services/order-storage",
+]
+resolver = "2"

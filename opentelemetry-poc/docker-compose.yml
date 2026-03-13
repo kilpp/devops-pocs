@@ -1,0 +1,55 @@
+services:
+  jaeger:
+    image: docker.io/jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317"         # OTLP gRPC (internal, used by collector)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  otel-collector:
+    image: docker.io/otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - jaeger
+
+  order-storage:
+    build:
+      context: .
+      dockerfile: services/order-storage/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      - otel-collector
+
+  order-processor:
+    build:
+      context: .
+      dockerfile: services/order-processor/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - ORDER_STORAGE_URL=http://order-storage:8083
+    depends_on:
+      - otel-collector
+      - order-storage
+
+  order-ingestion:
+    build:
+      context: .
+      dockerfile: services/order-ingestion/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - ORDER_PROCESSOR_URL=http://order-processor:8082
+    depends_on:
+      - otel-collector
+      - order-processor

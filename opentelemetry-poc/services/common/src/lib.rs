@@ -145,7 +145,7 @@ pub fn inject_context_with_baggage(headers: &mut http::HeaderMap, baggage: Vec<K
 
 /// Read a baggage value from an extracted OpenTelemetry context.
 pub fn get_baggage(cx: &opentelemetry::Context, key: &str) -> Option<String> {
-    let value = cx.baggage().get(key)?;
+    let value = cx.baggage().get(opentelemetry::Key::new(key.to_string()))?;
     Some(value.to_string())
 }
 
